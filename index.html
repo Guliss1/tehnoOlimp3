@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Классы бетона · Concrete classes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="wrapper">
+    <header>
+        <div class="header-top">
+            <h1>🧱 Бетон-тест <span>плавная анимация</span></h1>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" title="Переключить тему">🌙</button>
+                <button class="compare-toggle-btn" id="compareToggleBtn">🔍 Сравнить</button>
+                <div class="lang-switcher">
+                    <button class="lang-btn active" data-lang="ru" id="langRu">RU</button>
+                    <button class="lang-btn" data-lang="en" id="langEn">EN</button>
+                </div>
+            </div>
+        </div>
+        <div class="subhead">60 ступеней разрушения · Реалистичные трещины · Динамические осколки</div>
+    </header>
+
+    <div class="chart-container" id="chartContainer">
+        <canvas id="strengthChart" width="800" height="300"></canvas>
+    </div>
+
+    <div class="grid-header">
+        <h2>Классы бетона B10–B90</h2>
+        <div class="grid-controls">
+            <div class="sort-controls">
+                <select id="sortSelect" class="sort-select">
+                    <option value="class-asc">Класс (А-Я)</option>
+                    <option value="class-desc">Класс (Я-А)</option>
+                    <option value="strength-asc">Прочность (↑)</option>
+                    <option value="strength-desc" selected>Прочность (↓)</option>
+                </select>
+            </div>
+            <div class="filter-controls">
+                <select id="filterSelect" class="filter-select">
+                    <option value="all">Все классы</option>
+                    <option value="foundation">Фундаменты</option>
+                    <option value="walls">Стены/перекрытия</option>
+                    <option value="bridges">Мосты/тоннели</option>
+                    <option value="highrise">Высотные</option>
+                    <option value="special">Спецсооружения</option>
+                </select>
+            </div>
+            <span class="grid-hint" id="gridHint">▼ выберите класс</span>
+            <div class="favorites-filter">
+                <button class="favorites-toggle" id="favoritesToggle">⭐ Избранное</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="concrete-grid" id="gridContainer"></div>
+
+    <!-- Панель детальной информации -->
+    <div class="detail-panel" id="detailPanel">
+        <div class="panel-header">
+            <h2 id="currentClassTitle">B25</h2>
+            <button class="close-btn" id="closePanelBtn">✕</button>
+        </div>
+        <div class="panel-split">
+            <div class="info-box">
+                <div class="strength-card">
+                    <div class="strength-label">Прочность на сжатие</div>
+                    <div class="strength-value">
+                        <span id="currentStrength">32.9</span>
+                        <small>МПа</small>
+                    </div>
+                </div>
+                <div class="desc-box">
+                    <div class="desc-title">🏗️ Применение</div>
+                    <p id="currentUsage">Фундаменты малоэтажных зданий</p>
+                </div>
+                <!-- Блок этапов разрушения -->
+                <div class="stages-box">
+                    <div class="stages-title">📉 Этапы разрушения</div>
+                    <div class="stages-list">
+                        <div class="stage-item">
+                            <span class="stage-name">Микротрещины:</span>
+                            <span class="stage-pressure" id="stageMicro">0 МПа</span>
+                        </div>
+                        <div class="stage-item">
+                            <span class="stage-name">Трещины:</span>
+                            <span class="stage-pressure" id="stageCracks">0 МПа</span>
+                        </div>
+                        <div class="stage-item">
+                            <span class="stage-name">Разломы:</span>
+                            <span class="stage-pressure" id="stageFractures">0 МПа</span>
+                        </div>
+                        <div class="stage-item">
+                            <span class="stage-name">Разрушение:</span>
+                            <span class="stage-pressure" id="stageFailure">0 МПа</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: визуализация -->
+            <div class="test-area">
+                <div class="sprite-container">
+                    <img id="destructionSprite" src="" alt="Разрушение бетона">
+                    <div class="frame-indicator" id="frameIndicator">0 МПа</div>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="progressSlider" min="0" max="1" step="0.01" value="0">
+                </div>
+                <div class="state-text" id="cubeState">Целый</div>
+                <div class="progress-wrap">
+                    <div class="progress-bg">
+                        <div class="progress-fill" id="progressFill">0 МПа</div>
+                    </div>
+                </div>
+                <div class="load-test">
+                    <input type="number" id="loadInput" placeholder="Нагрузка (МПа)" min="0" step="0.1" value="0">
+                    <button class="test-button small" id="applyLoadBtn">Испытать</button>
+                </div>
+                <button class="test-button" id="testBtn">
+                    <span class="btn-icon">🧪</span> Анимировать разрушение
+                </button>
+            </div>
+        </div>
+
+        <!-- Блок результата и сравнений -->
+        <div class="result-block" id="resultBlock">
+            <div class="result-message" id="resultMsg">Прочность B25 составляет 32.9 МПа</div>
+            <div class="compare-group" id="compareGroup">
+                <button class="comp-btn" data-type="cars">🚗 3 авто на ладони</button>
+                <button class="comp-btn" data-type="sea">🌊 Давление в Балтике</button>
+                <button class="comp-btn" data-type="elephants">🐘 2 слона</button>
+            </div>
+            <div class="comp-info" id="compInfo">
+                <h4 id="compTitle"></h4>
+                <p id="compDesc"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ПОЛНАЯ ПАНЕЛЬ СРАВНЕНИЯ (С ТАБЛИЦЕЙ И СОВЕТОМ) ===== -->
+    <div class="compare-panel" id="comparePanel" style="display: none;">
+        <div class="compare-header">
+            <h3 id="compareTitle">Сравнение классов бетона</h3>
+            <div class="compare-header-actions">
+                <button class="close-btn" id="closeCompareBtn">✕</button>
+            </div>
+        </div>
+        <div class="compare-container" id="compareContainer"></div>
+
+        <!-- БЛОК ДЕТАЛЬНОГО СРАВНЕНИЯ -->
+        <div class="comparison-details" id="comparisonDetails" style="display: none;">
+            <div class="comparison-row">
+                <span class="comparison-label">Разница в прочности:</span>
+                <span class="comparison-value" id="compDiffValue"></span>
+            </div>
+            <div class="comparison-row">
+                <span class="comparison-label">Относительная разница:</span>
+                <span class="comparison-value" id="compPercentValue"></span>
+            </div>
+            <div class="comparison-row">
+                <span class="comparison-label">Более прочный:</span>
+                <span class="comparison-value" id="compStrongerClass"></span>
+            </div>
+            <div class="comparison-advice" id="compAdvice"></div>
+
+            <!-- ТАБЛИЦА СРАВНЕНИЯ -->
+            <div class="comparison-table">
+                <div class="table-header">
+                    <div>Параметр</div>
+                    <div id="compClass1Title"></div>
+                    <div id="compClass2Title"></div>
+                </div>
+                <div class="table-row">
+                    <div>Прочность (МПа)</div>
+                    <div id="compStrength1"></div>
+                    <div id="compStrength2"></div>
+                </div>
+                <div class="table-row">
+                    <div>Микротрещины</div>
+                    <div id="compMicro1"></div>
+                    <div id="compMicro2"></div>
+                </div>
+                <div class="table-row">
+                    <div>Трещины</div>
+                    <div id="compCracks1"></div>
+                    <div id="compCracks2"></div>
+                </div>
+                <div class="table-row">
+                    <div>Разломы</div>
+                    <div id="compFractures1"></div>
+                    <div id="compFractures2"></div>
+                </div>
+                <div class="table-row">
+                    <div>Разрушение</div>
+                    <div id="compFailure1"></div>
+                    <div id="compFailure2"></div>
+                </div>
+                <div class="table-row">
+                    <div>Применение</div>
+                    <div id="compUsage1"></div>
+                    <div id="compUsage2"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="compare-controls">
+            <button class="test-button" id="compareTestBtn" disabled>▶ Сравнить анимацию</button>
+            <button class="reset-btn" id="compareResetBtn">Сбросить</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>© Бетон-тест · Демонстрация классов прочности</p>
+    </footer>
+</div>
+
+<script src="js/locales.js"></script>
+<script src="js/concrete-data.js"></script>
+<script src="js/destruction-frames.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
